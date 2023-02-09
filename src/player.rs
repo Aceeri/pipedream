@@ -111,7 +111,7 @@ impl Plugin for PlayerPlugin {
             .add_startup_system(spawn_player)
             .add_system(cursor_grab)
             .add_system(controller::controller_inputs)
-            .add_fixed_timestep(std::time::Duration::from_millis(7), "fixed")
+            .add_fixed_timestep(controller::TICK_RATE, "fixed")
             .add_fixed_timestep_system("fixed", 0, controller::controller_movement)
             .add_system_to_stage(
                 CoreStage::PostUpdate,
@@ -204,6 +204,7 @@ pub fn camera_follow_entity(
         source_movement.input_state.yaw,
         source_movement.input_state.pitch,
     );
-    camera.translation = player.translation + (player.forward() * 0.3) + (player.up() * 2.);
+    let target_translation = player.translation + (player.forward() * 0.3) + (player.up() * 2.);
+    camera.translation = camera.translation.lerp(target_translation, 0.1);
     camera.rotation = rotate_camera_by;
 }

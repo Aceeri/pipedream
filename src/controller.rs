@@ -5,6 +5,7 @@ use leafwing_input_manager::prelude::*;
 use crate::player::{self, Player, PlayerAction, PlayerCam};
 
 const SENS: f32 = 0.02736;
+pub static TICK_RATE: std::time::Duration = std::time::Duration::from_millis(32);
 
 #[derive(Component)]
 pub struct SourceMovement {
@@ -73,14 +74,14 @@ pub fn controller_inputs(
             PlayerAction::Right => direction += Vec3::X,
             PlayerAction::Jump => direction += Vec3::Y,
             PlayerAction::Sprint => source_movement.sprinting = true,
-            _ => {},
+            _ => {}
         }
     }
     let released = actions.get_just_released();
     for action in released {
         match action {
             PlayerAction::Sprint => source_movement.sprinting = false,
-            _ => {},
+            _ => {}
         }
     }
     source_movement.direction = direction;
@@ -115,7 +116,7 @@ pub fn controller_movement(
                     controller_output.effective_translation,
                     0.5,
                     1.5,
-                    0.01,
+                    TICK_RATE.as_secs_f32(),
                 ) + Vec3::new(0., -0.01 * 2., 0.)
             }
             true => {
@@ -125,7 +126,7 @@ pub fn controller_movement(
                     120.0,
                     20.0,
                     2.,
-                    0.01,
+                    TICK_RATE.as_secs_f32(),
                 ) * if source_movement.sprinting { 2.2 } else { 1. }
             }
         };
@@ -142,8 +143,7 @@ pub fn controller_movement(
         player.translation = player.translation + (unit_direction / 3.);
 
         //Rotate player
-        let rotate_by = Quat::from_euler(EulerRot::ZYX, 0.0, source_movement.input_state.yaw, 0.0);
-        player.rotation = player.rotation.slerp(rotate_by, 0.5);
+        player.rotation = Quat::from_axis_angle(Vec3::Y, source_movement.input_state.yaw);
     }
 }
 
