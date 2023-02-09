@@ -120,9 +120,9 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn client_camera_spawn(mut commands: Commands) {
+fn client_camera_spawn(mut commands: Commands, mut asset_server: ResMut<AssetServer>) {
     info!("booting");
-    spawn_camera(&mut commands, 1);
+    spawn_camera(&mut commands, &mut *asset_server, 1);
 }
 
 pub fn spawn_player(mut commands: Commands, asset_server: ResMut<AssetServer>) {
@@ -150,14 +150,12 @@ pub fn spawn_player(mut commands: Commands, asset_server: ResMut<AssetServer>) {
     });
     player_entity.insert(LocalPlayer);
 
-    player_entity.insert(SceneBundle {
-        scene: asset_server.load("wizard_rotated.gltf#Scene0"),
-        transform: Transform::from_xyz(0., 2., 0.),
-        ..default()
-    });
+    player_entity.insert(TransformBundle::from_transform(Transform::from_xyz(
+        0., 2., 0.,
+    )));
 }
 
-pub fn spawn_camera(commands: &mut Commands, id: u64) {
+pub fn spawn_camera(commands: &mut Commands, asset_server: &mut AssetServer, id: u64) {
     let cam = Camera3dBundle {
         projection: PerspectiveProjection {
             fov: 0.93,
@@ -171,7 +169,12 @@ pub fn spawn_camera(commands: &mut Commands, id: u64) {
         .insert(cam)
         .insert(PlayerCam(id))
         .insert(Follow(None))
-        .insert(AtmosphereCamera::default());
+        .insert(AtmosphereCamera::default())
+        .insert(SceneBundle {
+            scene: asset_server.load("wizard_rotated.gltf#Scene0"),
+            transform: Transform::from_xyz(0., 2., 0.),
+            ..default()
+        });
 }
 
 fn toggle_grab_cursor(window: &mut Window) {
